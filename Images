@@ -1,0 +1,44 @@
+Sub ConvertAllShapesToPic()
+    Dim oSl As Slide
+    Dim oSh As Shape
+
+    For Each oSl In ActivePresentation.Slides
+        For Each oSh In oSl.Shapes
+            'modify the following depending on what you want to convert
+            Select Case oSh.Type
+                Case msoChart, msoEmbeddedOLEObject, msoLinkedOLEObject
+                    ConvertShapeToPic oSh
+                Case msoPlaceholder
+                    If oSh.PlaceholderFormat.ContainedType = msoEmbeddedOLEObject _
+                        Or oSh.PlaceholderFormat.ContainedType = msoLinkedOLEObject _
+                        Or oSh.PlaceholderFormat.ContainedType = msoChart _
+                        Then
+                        ConvertShapeToPic oSh
+                    End If
+                Case Else
+
+            End Select
+        Next
+    Next
+
+End Sub
+
+Sub ConvertShapeToPic(ByRef oSh As Shape)
+    Dim oNewSh As Shape
+    Dim oSl As Slide
+
+    Set oSl = oSh.Parent
+    oSh.Copy
+    Set oNewSh = oSl.Shapes.PasteSpecial(ppPasteEnhancedMetafile)(1)
+
+    With oNewSh
+        .Left = oSh.Left
+        .Top = oSh.Top
+        Do
+            .ZOrder (msoSendBackward)
+        Loop Until .ZOrderPosition < oSh.ZOrderPosition
+    End With
+
+    oSh.Delete
+
+End Sub
